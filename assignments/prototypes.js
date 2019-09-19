@@ -15,6 +15,15 @@
   * dimensions (These represent the character's size in the video game)
   * destroy() // prototype method that returns: `${this.name} was removed from the game.`
 */
+function GameObject(character) {
+  this.createdAt = character.createdAt;
+  this.name = character.name;
+  this.dimensions = character.dimensions;
+}  
+
+GameObject.prototype.destroy = function() {
+      console.log(`${this.name} was removed from the game.`);
+    }
 
 /*
   === CharacterStats ===
@@ -22,6 +31,25 @@
   * takeDamage() // prototype method -> returns the string '<object name> took damage.'
   * should inherit destroy() from GameObject's prototype
 */
+function CharacterStats(gameObj){
+  GameObject.call(this, gameObj)
+  this.healthPoints = gameObj.healthPoints;
+  
+}
+CharacterStats.prototype = Object.create(GameObject.prototype);
+
+CharacterStats.prototype.takeDamage = function(){ 
+    this.healthPoints--;  
+    if(this.healthPoints < 1){
+      console.log(`%c${this.name} took damage. ${this.name} died!`, 'background: #eeeeee; color: #990000')
+      this.destroy();
+    }
+    else{
+      console.log(`%c${this.name} took damage. ${this.name}'s HP is at ${this.healthPoints}!`, 'background: #eeeeee; color: #990000')
+    }
+
+  }
+
 
 /*
   === Humanoid (Having an appearance or character resembling that of a human.) ===
@@ -32,6 +60,16 @@
   * should inherit destroy() from GameObject through CharacterStats
   * should inherit takeDamage() from CharacterStats
 */
+function Humanoid(chrStats){
+  CharacterStats.call(this, chrStats);
+  this.team = chrStats.team;
+  this.weapons = chrStats.weapons;
+  this.language = chrStats.language;  
+}
+Humanoid.prototype = Object.create(CharacterStats.prototype);
+Humanoid.prototype.greet = function(){
+  return `${this.name} offers a greeting in ${this.language}.`;
+}
  
 /*
   * Inheritance chain: GameObject -> CharacterStats -> Humanoid
@@ -108,3 +146,81 @@
   // * Create Villain and Hero constructor functions that inherit from the Humanoid constructor function.  
   // * Give the Hero and Villains different methods that could be used to remove health points from objects which could result in destruction if health gets to 0 or drops below 0;
   // * Create two new objects, one a villain and one a hero and fight it out with methods!
+
+  function Villian(humanoid){
+    Humanoid.call(this, humanoid);
+    this.alignment = "Evil";
+  }
+  Villian.prototype = Object.create(Humanoid.prototype);
+  Villian.prototype.attack = function(target){
+    console.log(`%c${this.name} is casting a dark spell from ${this.weapons[Math.floor(Math.random() * this.weapons.length)]} at ${target.name}.`, 'background: #eeeeee; color: blue');
+    target.takeDamage();
+    //Can attack anyone, not just heroes because they're bad guys.
+  }
+
+  function Hero(humanoid){
+    Humanoid.call(this, humanoid);
+    this.alignment = "Good";
+  }
+  Hero.prototype = Object.create(Humanoid.prototype);
+  Hero.prototype.attack = function(target){
+    if(target.alignment === "Evil"){
+      console.log(`%c${this.name} is swinging their mighty weapon ${this.weapons[Math.floor(Math.random() * this.weapons.length)]} at ${target.name}.`, 'background: #eeeeee; color: blue');
+      target.takeDamage();
+    }
+    else{
+      console.log(`${this.name} can't attack ${target.name}! They are an ally!`)
+    }
+  }
+  
+
+const zhor = new Villian({
+  createdAt: new Date(),
+  dimensions: {
+    length: 2,
+    width: 2,
+    height: 5,
+  },
+  healthPoints: 21,
+  name: 'Zhor',
+  team: "Villian's Labor Union",
+  weapons: [
+    "Devine, Cleaver of the Insane",
+    "Thunder-Forged Epitome", 
+    "Spectral-Forged Battletome",
+    "Pride's Scroll",
+    "Ash, Urn of Illuminated Dreams"
+  ],
+  language: 'Common Tongue',
+  alignment: 'Chaotic Evil',
+});
+
+const loth = new Hero({
+  createdAt: new Date(),
+  dimensions: {
+    length: 2,
+    width: 2,
+    height: 4,
+  },
+  healthPoints: 25,
+  name: 'Loth Sacredsnow',
+  team: "Alliance of Snowfall",
+  weapons: [
+    "Godslayer, Breaker of the Heavens",
+    "Demonic Greathammer",
+    "Howling Obsidian Shortsword"
+  ],
+  language: 'Northern',
+  alignment: 'Neutral Good',
+});
+
+
+battleMembers = [loth, zhor]
+// while (battleMembers[0].healthPoints > 0 || battleMembers[1].healthPoints > 0)
+let i = 0;
+do{
+  console.log(`%cTURN ${i}!`, "font-size: 20px");
+  if(battleMembers[0].healthPoints > 0 && battleMembers[1].healthPoints > 0){ battleMembers[0].attack(battleMembers[1]) };
+  if(battleMembers[0].healthPoints > 0 && battleMembers[1].healthPoints > 0){ battleMembers[1].attack(battleMembers[0]) };  
+  i++;
+ } while (battleMembers[0].healthPoints > 0 && battleMembers[1].healthPoints > 0)
